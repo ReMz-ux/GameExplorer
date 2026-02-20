@@ -12,12 +12,10 @@ async function fetchGames(searchQuery = '') {
 
         if (searchQuery) {
             apiURL += `&search=${encodeURIComponent(searchQuery)}`;
-            console.log("Recherche lancée pour :", searchQuery);
         }
 
         const response = await fetch(apiURL);
         const data = await response.json();
-        console.log(data);
 
         //J'affiche les jeux récupérés
         if (data.results) {
@@ -40,10 +38,10 @@ let debounceTimer;
 searchInput.addEventListener('input', (event) => {
     const query = event.target.value.trim();
 
-    // 1. On annule le chronomètre précédent (si l'utilisateur tape une nouvelle lettre)
+    // On annule le chronomètre précédent (si l'utilisateur tape une nouvelle lettre)
     clearTimeout(debounceTimer);
 
-    // 2. On lance un nouveau chronomètre de 500 millisecondes (0.5 seconde)
+    // On lance un nouveau chronomètre de 500 millisecondes (0.5 seconde)
     debounceTimer = setTimeout(() => {
         // Ce code ne s'exécutera que si l'utilisateur arrête de taper pendant 500ms
         if (query.length >= 3) {
@@ -61,30 +59,46 @@ function displayGames(games) {
     const gamesContainer = document.getElementById('games-container');
 
     //Je vide le conteneur avant d'afficher les nouveaux jeux
-    gamesContainer.innerHTML = '';
+    gamesContainer.replaceChildren();
 
     // Vérifier si aucun jeu n'a été trouvé
     if (!games || games.length === 0) {
-        gamesContainer.innerHTML = '<p class="no-results">Aucun jeu n\'a été trouvé</p>';
+        const noResults = document.createElement('p');
+        noResults.className = 'no-results';
+        noResults.textContent = 'Aucun jeu n\'a été trouvé';
+        gamesContainer.appendChild(noResults);
         return;
     }
 
     games.forEach(game => {
-
         //Je crée un élément pour chaque jeu
-        const gameCard = `<div class="game-card">
-                <img src="${game.background_image}" alt="${game.name}" />
-                <div class="game-info">
-                    <h3>${game.name}</h3>
-                    <p>Note : ⭐ ${game.rating}/5</p>
-                </div>
-            </div>
-        `;
+        const gameCard = document.createElement('div');
+        gameCard.className = 'game-card';
+
+        // Création de l'image
+        const img = document.createElement('img');
+        img.src = game.background_image || ''; // Protection contre les valeurs null
+        img.alt = game.name || 'Jeu sans nom';
+        gameCard.appendChild(img);
+
+        // Création du conteneur d'infos
+        const gameInfo = document.createElement('div');
+        gameInfo.className = 'game-info';
+
+        // Création du titre
+        const title = document.createElement('h3');
+        title.textContent = game.name || 'Jeu sans nom';
+        gameInfo.appendChild(title);
+
+        // Création de la note
+        const rating = document.createElement('p');
+        rating.textContent = `Note : ⭐ ${game.rating || 0}/5`;
+        gameInfo.appendChild(rating);
+
+        gameCard.appendChild(gameInfo);
 
         //J'ajoute chaque carte de jeu au conteneur
-        gamesContainer.innerHTML += gameCard;
+        gamesContainer.appendChild(gameCard);
     })
 };
-
-fetchGames();
 
